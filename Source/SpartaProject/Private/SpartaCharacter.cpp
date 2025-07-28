@@ -38,6 +38,7 @@ ASpartaCharacter::ASpartaCharacter()
 	MaxHealth = 100;
 	Health = MaxHealth;
 	bIsNowSlow = false;
+	bIsBlind = false;
 
 	bIsReverseControl = false;
 
@@ -80,6 +81,35 @@ void ASpartaCharacter::StartReverseControl(float Duration)
 	);
 }
 
+void ASpartaCharacter::StartBlind(float Duration)
+{
+	bIsBlind = true;
+
+	GetWorldTimerManager().SetTimer(
+		BlindTimerHandle,
+		this,
+		&ASpartaCharacter::EndBlind,
+		Duration,
+		false
+	);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (PC->PlayerCameraManager)
+		{
+			PC->PlayerCameraManager->ViewPitchMin = -60.f;
+			PC->PlayerCameraManager->ViewPitchMax = 60.f;
+
+			FRotator Rot = GetControlRotation();
+			PC->PlayerCameraManager->ViewYawMin = Rot.Yaw - 45.f;
+			PC->PlayerCameraManager->ViewYawMax = Rot.Yaw + 45.f;
+		}
+	}
+
+
+	UE_LOG(LogTemp, Warning, TEXT("Start Blind"));
+}
+
 void ASpartaCharacter::EndSlowSpeed()
 {
 	bIsNowSlow = false;
@@ -93,6 +123,25 @@ void ASpartaCharacter::EndSlowSpeed()
 void ASpartaCharacter::EndReverseControl()
 {
 	bIsReverseControl = false;
+}
+
+void ASpartaCharacter::EndBlind()
+{
+	bIsBlind = false;
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (PC->PlayerCameraManager)
+		{
+			PC->PlayerCameraManager->ViewPitchMin = -90.f;
+			PC->PlayerCameraManager->ViewPitchMax = 90.f;
+
+			PC->PlayerCameraManager->ViewYawMin =-179.f;
+			PC->PlayerCameraManager->ViewYawMax = 179.f;
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("End Blind"));
 }
 
 
@@ -212,6 +261,7 @@ void ASpartaCharacter::Look(const FInputActionValue& value)
 
 	AddControllerYawInput(LookInput.X);
 	AddControllerPitchInput(LookInput.Y);
+
 }
 
 void ASpartaCharacter::StartSprint(const FInputActionValue& value)

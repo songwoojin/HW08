@@ -12,6 +12,7 @@
 #include "Blueprint/UserWidget.h"
 #include "NBaseItem.h"
 #include "SpartaCharacter.h"
+#include "NBaseGimmick.h"
 
 ASpartaGameState::ASpartaGameState()
 {
@@ -203,7 +204,7 @@ void ASpartaGameState::UpdateHUD()
 					{
 						RemainingTime = 0.f;
 					}
-					SlowSpeedText->SetText(FText::FromString(FString::Printf(TEXT("Slow Speed debuff remaining time : %.1f"), RemainingTime)));
+					SlowSpeedText->SetText(FText::FromString(FString::Printf(TEXT("Slow Speed time : %.1f"), RemainingTime)));
 				}
 			}
 
@@ -216,7 +217,20 @@ void ASpartaGameState::UpdateHUD()
 					{
 						RemainingTime = 0.f;
 					}
-					ReverseControlText->SetText(FText::FromString(FString::Printf(TEXT("Reverse control debuff remaining time : %.1f"), RemainingTime)));
+					ReverseControlText->SetText(FText::FromString(FString::Printf(TEXT("Reverse control time : %.1f"), RemainingTime)));
+				}
+			}
+
+			if (UTextBlock* BlindText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Blind"))))
+			{
+				if (ASpartaCharacter* SpartaCharacter = Cast<ASpartaCharacter>(SpartaPlayerController->GetPawn()))
+				{
+					float RemainingTime = GetWorldTimerManager().GetTimerRemaining(SpartaCharacter->BlindTimerHandle);
+					if (RemainingTime < 0.f)
+					{
+						RemainingTime = 0.f;
+					}
+					BlindText->SetText(FText::FromString(FString::Printf(TEXT("Blind time : %.1f"), RemainingTime)));
 				}
 			}
 		}
@@ -260,7 +274,7 @@ void ASpartaGameState::StartWave()
 	{
 		if (FoundVolumes.Num() > 0)
 		{
-			ANSpawnVolume* SpawnVolume = Cast<ANSpawnVolume>(FoundVolumes[0]);
+			ANSpawnVolume* SpawnVolume = Cast<ANSpawnVolume>(WaveSpawnVolume);
 			if (SpawnVolume)
 			{
 				AActor* SpawnedActor = SpawnVolume->SpawnRandomItem();
@@ -272,6 +286,13 @@ void ASpartaGameState::StartWave()
 		}
 	}
 
+	if (SpawnedCoinCount == 0)
+	{
+		CurWave--;
+		EndWave();
+		return;
+	}
+
 	GetWorldTimerManager().SetTimer(
 		WaveTimerHandle,
 		this,
@@ -279,16 +300,17 @@ void ASpartaGameState::StartWave()
 		WaveSpawnVolume->WaveDuration,
 		false
 	);
+	
 }
 
 void ASpartaGameState::EndWave()
 {
 	GetWorldTimerManager().ClearTimer(WaveTimerHandle);
 
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANBaseItem::StaticClass(), FoundActors);
+	TArray<AActor*> FoundItems;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANBaseItem::StaticClass(), FoundItems);
 
-	for (AActor* Actor : FoundActors)
+	for (AActor* Actor : FoundItems)
 	{
 		if (ANBaseItem* Item=Cast<ANBaseItem>(Actor))
 		{
@@ -296,10 +318,22 @@ void ASpartaGameState::EndWave()
 		}
 	}
 
+	TArray<AActor*> FoundGimmicks;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ANBaseGimmick::StaticClass(), FoundGimmicks);
+
+	for (AActor* Actor : FoundGimmicks)
+	{
+		if (ANBaseGimmick* Gimmick = Cast<ANBaseGimmick>(Actor))
+		{
+			Gimmick->DestroyGimmick();
+		}
+	}
+
 	CurWave++;
 
 	SpawnedCoinCount = 0;
 	CollectedCoinCount = 0;
+
 
 	StartWave();
 }

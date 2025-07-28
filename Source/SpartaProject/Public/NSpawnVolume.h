@@ -31,7 +31,7 @@ public:
 
 	FNItemSpawnRow* GetRandomItem() const;
 	AActor* SpawnItem(TSubclassOf<AActor> ItemClass);
-	FVector GetRandomPointInVolume() const;
+	FVector GetRandomPointInVolume(bool bIsGimmick) const;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Wave")
 	int32 WaveIndex;

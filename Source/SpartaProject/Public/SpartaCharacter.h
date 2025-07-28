@@ -39,6 +39,9 @@ public:
 	void StartReverseControl(float Duration);
 	FTimerHandle ReverseControlTimerHandle;
 
+	void StartBlind(float Duration);
+	FTimerHandle BlindTimerHandle;
+
 	UFUNCTION(BlueprintCallable,Category="Health")
 	void AddHealth(float Amount);
 
@@ -80,5 +83,8 @@ private:
 
 	bool bIsReverseControl;
 	void EndReverseControl();
+
+	bool bIsBlind;
+	void EndBlind();
 	
 };

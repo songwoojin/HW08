@@ -21,7 +21,9 @@ ASpartaPlayerController::ASpartaPlayerController()
 	HUDWidgetClass(nullptr),
 	HUDWidgetInstance(nullptr),
 	MainMenuWidgetClass(nullptr),
-	MainMenuWidgetInstance(nullptr)
+	MainMenuWidgetInstance(nullptr),
+	GimmickWidgetClass(nullptr),
+	GimickWidgetInstance(nullptr)
 {
 
 }
@@ -47,12 +49,41 @@ void ASpartaPlayerController::BeginPlay()
 	{
 		ShowMainMenu(false);
 	}
+
+	CreateGimmickUI();
+
+}
+
+void ASpartaPlayerController::CreateGimmickUI()
+{
+	if (GimmickWidgetClass)
+	{
+		GimickWidgetInstance = CreateWidget<UUserWidget>(this, GimmickWidgetClass);
+		if (GimickWidgetInstance)
+		{
+			GimickWidgetInstance->AddToViewport();
+		}
+	}
+}
+
+void ASpartaPlayerController::DeleteGimmickUI()
+{
+	if (GimickWidgetInstance)
+	{
+		GimickWidgetInstance->RemoveFromParent();
+		GimickWidgetInstance = nullptr;
+	}
 }
 
 
 UUserWidget* ASpartaPlayerController::GetHUDWidget() const
 {
 	return HUDWidgetInstance;
+}
+
+UUserWidget* ASpartaPlayerController::GetGimmickWidget() const
+{
+	return GimickWidgetInstance;
 }
 
 void ASpartaPlayerController::ShowGameHUD()

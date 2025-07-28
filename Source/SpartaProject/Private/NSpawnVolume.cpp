@@ -3,6 +3,7 @@
 
 #include "NSpawnVolume.h"
 #include "Components/BoxComponent.h"
+#include "NBaseGimmick.h"
 
 ANSpawnVolume::ANSpawnVolume()
 {
@@ -21,7 +22,7 @@ ANSpawnVolume::ANSpawnVolume()
 	WaveDuration = 0;
 }
 
-FVector ANSpawnVolume::GetRandomPointInVolume() const
+FVector ANSpawnVolume::GetRandomPointInVolume(bool bIsGimmick) const
 {
 	//길이의 절반
 	FVector BoxExtent = SpawningBox->GetScaledBoxExtent();
@@ -31,12 +32,12 @@ FVector ANSpawnVolume::GetRandomPointInVolume() const
 	return BoxOrigin+FVector(
 		FMath::FRandRange(-BoxExtent.X,BoxExtent.X),
 		FMath::FRandRange(-BoxExtent.Y, BoxExtent.Y), 
-		FMath::FRandRange(-BoxExtent.Z, BoxExtent.Z));
+		bIsGimmick? -BoxExtent.Z : FMath::FRandRange(-BoxExtent.Z, BoxExtent.Z));
 }
 
 AActor* ANSpawnVolume::SpawnRandomItem()
 {
-	if (FNItemSpawnRow * SelectedRow = GetRandomItem())
+	if (FNItemSpawnRow* SelectedRow = GetRandomItem())
 	{
 		if (UClass* ActualClass = SelectedRow->ItemClass.Get())
 		{
@@ -86,9 +87,20 @@ AActor* ANSpawnVolume::SpawnItem(TSubclassOf<AActor> ItemClass)
 {
 	if (!ItemClass)	return nullptr;
 
+	bool bIsGimmick = false;
+
+	//자식관
+	if (ItemClass.Get()->IsChildOf(ANBaseGimmick::StaticClass()))
+	{
+		bIsGimmick = true;
+	}
+
+	//FActorSpawnParameters Params;
+	//Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
 	AActor* SpawnedActor=GetWorld()->SpawnActor<AActor>(
 		ItemClass,
-		GetRandomPointInVolume(),
+		GetRandomPointInVolume(bIsGimmick),
 		FRotator::ZeroRotator
 	);
 

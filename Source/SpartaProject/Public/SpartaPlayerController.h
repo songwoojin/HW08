@@ -20,6 +20,7 @@ class SPARTAPROJECT_API ASpartaPlayerController : public APlayerController
 protected:
 	virtual void BeginPlay() override;
 
+
 public:
 	ASpartaPlayerController();
 
@@ -66,4 +67,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Menu")
 	void GoToMainMenu();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gimmick")
+	TSubclassOf<UUserWidget> GimmickWidgetClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Gimmick")
+	UUserWidget* GimickWidgetInstance;
+
+	UFUNCTION(BlueprintCallable, Category = "Gimmick")
+	UUserWidget* GetGimmickWidget() const;
+
+	void CreateGimmickUI();
+	void DeleteGimmickUI();
 };
